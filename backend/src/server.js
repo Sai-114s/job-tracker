@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
+import { startReminderScheduler } from "./utils/reminderScheduler.js";
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+    startReminderScheduler();
   } catch (error) {
     console.error("Failed to start server", error);
     process.exit(1);

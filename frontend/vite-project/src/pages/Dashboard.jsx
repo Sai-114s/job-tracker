@@ -9,11 +9,17 @@ const Dashboard = () => {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState("applied");
+  const [deadline, setDeadline] = useState("");
+  const [reminderAt, setReminderAt] = useState("");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDeadline, setFilterDeadline] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [editingJobId, setEditingJobId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const fetchJobs = async () => {
     try {
@@ -26,13 +32,17 @@ const Dashboard = () => {
         return;
       }
 
-      const response = await axios.get(`${apiBaseUrl}/jobs`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${apiBaseUrl}/jobs?page=${page}&limit=5&search=${debouncedSearch}&status=${filterStatus}&deadline=${filterDeadline}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setJobs(response?.data?.jobs || []);
+      setPages(response?.data?.pages || 1);
     } catch (err) {
       const message = err?.response?.data?.message || "Failed to load jobs";
       setError(message);
@@ -50,21 +60,45 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [page, debouncedSearch, filterStatus, filterDeadline]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterStatus, filterDeadline]);
 
   const resetForm = () => {
     setTitle("");
     setCompany("");
     setStatus("applied");
+    setDeadline("");
+    setReminderAt("");
     setEditingJobId(null);
+  };
+
+  const toDateTimeLocal = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.valueOf())) {
+      return "";
+    }
+    const offset = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
   };
 
   const handleCreateJob = async (event) => {
     event.preventDefault();
     setFormError("");
 
-    if (!title || !company) {
-      setFormError("Title and company are required");
+    if (!title || !company || !deadline) {
+      setFormError("Title, company, and deadline are required");
       return;
     }
 
@@ -83,6 +117,8 @@ const Dashboard = () => {
             title,
             company,
             status,
+            deadline,
+            reminderAt: reminderAt || undefined,
           },
           {
             headers: {
@@ -97,6 +133,8 @@ const Dashboard = () => {
             title,
             company,
             status,
+            deadline,
+            reminderAt: reminderAt || undefined,
           },
           {
             headers: {
@@ -120,6 +158,10 @@ const Dashboard = () => {
     setTitle(job.title || "");
     setCompany(job.company || "");
     setStatus(job.status || "applied");
+    setDeadline(
+      job.deadline ? new Date(job.deadline).toISOString().slice(0, 10) : ""
+    );
+    setReminderAt(job.reminderAt ? toDateTimeLocal(job.reminderAt) : "");
     setEditingJobId(job._id);
     setFormError("");
   };
@@ -147,17 +189,6 @@ const Dashboard = () => {
       setError(message);
     }
   };
-
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = job.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "all" || job.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-16 text-slate-100">
@@ -216,6 +247,36 @@ const Dashboard = () => {
                 placeholder="Acme Inc."
                 required
               />
+            </div>
+
+            <div>
+              <label className="text-sm text-slate-300" htmlFor="deadline">
+                Deadline
+              </label>
+              <input
+                id="deadline"
+                type="date"
+                value={deadline}
+                onChange={(event) => setDeadline(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-slate-300" htmlFor="reminderAt">
+                Reminder time (optional)
+              </label>
+              <input
+                id="reminderAt"
+                type="datetime-local"
+                value={reminderAt}
+                onChange={(event) => setReminderAt(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400"
+              />
+              <p className="mt-2 text-xs text-slate-500">
+                Defaults to 24 hours before the deadline if empty.
+              </p>
             </div>
 
             <div>
@@ -327,6 +388,23 @@ const Dashboard = () => {
             <option value="rejected">Rejected</option>
             <option value="offer">Offer</option>
           </select>
+
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <input
+              type="date"
+              value={filterDeadline}
+              onChange={(e) => setFilterDeadline(e.target.value)}
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400 sm:w-auto"
+            />
+            <button
+              type="button"
+              onClick={() => setFilterDeadline("")}
+              disabled={!filterDeadline}
+              className="rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear date
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -348,7 +426,7 @@ const Dashboard = () => {
                 No jobs yet. Create your first job to get started.
               </div>
             ) : (
-              filteredJobs.map((job) => (
+              jobs.map((job) => (
                 <article
                   key={job._id}
                   className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
@@ -359,8 +437,18 @@ const Dashboard = () => {
                         {job.title}
                       </h2>
                       <p className="text-sm text-slate-400">{job.company}</p>
+                      <p className="text-xs text-slate-500">
+                        Deadline: {job.deadline
+                          ? new Date(job.deadline).toLocaleDateString()
+                          : "No deadline set"}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
+                      <span className="inline-flex w-fit items-center rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                        {job.deadline
+                          ? new Date(job.deadline).toLocaleDateString()
+                          : "No deadline"}
+                      </span>
                       <span className="inline-flex w-fit items-center rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-200">
                         {job.status}
                       </span>
@@ -383,6 +471,27 @@ const Dashboard = () => {
                 </article>
               ))
             )}
+            <div className="flex justify-center mt-6 gap-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+
+              <span className="px-3 py-1">
+                Page {page} of {pages}
+              </span>
+
+              <button
+                disabled={page === pages}
+                onClick={() => setPage(page + 1)}
+                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         ) : null}
       </div>

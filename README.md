@@ -29,6 +29,9 @@ This app helps users manage and track their job applications efficiently with au
   * Interview
   * Offer
   * Rejected
+* Required job deadline field
+* Reminder time selection (defaults to 24 hours before deadline)
+* Paginated results with server-side search and filtering
 
 ### 🎨 UI/UX
 
@@ -39,9 +42,10 @@ This app helps users manage and track their job applications efficiently with au
 
 ### ⚡ Advanced Features
 
-* Search jobs
-* Filter by status
-* Real-time UI updates
+* Server-side search (title/company/date)
+* Filter by status and deadline date
+* Pagination with page controls
+* Email reminders via Resend
 * Loading states & notifications
 
 ---
@@ -62,6 +66,7 @@ This app helps users manage and track their job applications efficiently with au
 * MongoDB (Mongoose)
 * JWT Authentication
 * bcryptjs
+* Resend (email)
 
 ---
 
@@ -112,6 +117,8 @@ Create a `.env` file:
 PORT=5000
 MONGO_URI=your_mongodb_connection
 JWT_SECRET=your_secret_key
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM=Job Tracker <you@yourdomain.com>
 ```
 
 Run backend:
@@ -152,10 +159,11 @@ npm run dev
 
 ### Jobs
 
-* GET `/api/jobs`
+* GET `/api/jobs?page=1&limit=5&search=&status=all&deadline=YYYY-MM-DD`
 * POST `/api/jobs`
 * PUT `/api/jobs/:id`
 * DELETE `/api/jobs/:id`
+* POST `/api/jobs/test-email`
 
 ---
 
@@ -165,8 +173,9 @@ npm run dev
 * JWT authentication & authorization
 * Protected routes (backend + frontend)
 * CRUD operations
+* Server-side pagination, filtering, and search
+* Reminder scheduling with Resend
 * State management in React
-* Client-side filtering & search
 * Modular backend architecture
 
 ---

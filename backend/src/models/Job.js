@@ -17,6 +17,16 @@ const jobSchema = new mongoose.Schema(
       enum: ["applied", "interview", "rejected", "offer"],
       default: "applied",
     },
+    deadline: {
+      type: Date,
+      required: true,
+    },
+    reminderAt: {
+      type: Date,
+    },
+    lastReminderSentAt: {
+      type: Date,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
