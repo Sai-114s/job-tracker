@@ -177,6 +177,21 @@ npm run dev
 * Reminder scheduling with Resend
 * State management in React
 * Modular backend architecture
+### 📄 Pagination
+- Backend pagination using page & limit
+- Frontend pagination UI (Prev/Next)
+- Total pages + results count
+
+### ⏰ Smart Reminders
+- Set reminder time per job
+- Email reminders using Resend
+- Auto scheduler:
+  - Sends before deadline
+  - Repeats every 24h until deadline
+
+### 📧 Email System
+- Reminder emails
+- Test email endpoint for verificatio
 
 ---
 
