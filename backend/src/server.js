@@ -19,6 +19,9 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+app.get("/", (req, res) => {
+  res.send("Job Tracker API Running");
+});
 
 // Auth routes
 app.use("/api/auth", authRoutes);
