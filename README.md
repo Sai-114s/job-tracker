@@ -7,8 +7,8 @@ This app helps users manage and track their job applications efficiently with au
 
 ## 🌍 Live Demo
 
-* Frontend: https://your-frontend-url.vercel.app
-* Backend API: https://your-backend-url.onrender.com
+* Frontend: https://job-tracker-38tp.onrender.com
+* Backend API: https://job-tracker-38tp.onrender.com
 
 ---
 
