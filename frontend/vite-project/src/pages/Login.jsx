@@ -21,7 +21,7 @@ const Login = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await axios.post(`${apiBaseUrl}/auth/login`, {
+      const response = await axios.post(`${apiBaseUrl}/api/auth/login`, {
         email,
         password,
       });
