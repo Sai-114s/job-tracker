@@ -22,7 +22,7 @@ const Register = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await axios.post(`${apiBaseUrl}/auth/register`, {
+      const response = await axios.post(`${apiBaseUrl}/api/auth/register`, {
         name,
         email,
         password,
